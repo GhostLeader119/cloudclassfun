@@ -7,6 +7,7 @@
         body {
             margin: 0;
             overflow: hidden;
+            background-color: #f0f0f0; /* Background color */
         }
         .ball {
             position: absolute;
@@ -14,15 +15,39 @@
             height: 50px;
             background-color: #3498db;
             border-radius: 50%;
+            background-image: url('https://via.placeholder.com/50'); /* Placeholder image */
+            background-size: cover;
+        }
+        .button-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .button {
+            padding: 10px 20px; /* Increase button size */
+            font-size: 16px; /* Increase font size */
+            background-color: #4CAF50; /* Green background */
+            color: white;
+            border: none;
+            border-radius: 8px; /* Rounded corners */
+            cursor: pointer;
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+        .button:hover {
+            background-color: #45a049; /* Darker green on hover */
         }
     </style>
 </head>
 <body>
     <div class="ball" id="ball"></div>
+    <div class="button-container">
+        <button class="button" id="speedButton">Increase Speed</button>
+    </div>
 
     <script>
         const maxSpeed = 10; // Maximum speed before splitting
         const speedIncrement = 1.5; // Speed increment on each click
+        const balls = []; // Array to store all ball objects
 
         class Ball {
             constructor(element, x, y, dx, dy) {
@@ -32,7 +57,8 @@
                 this.dx = dx;
                 this.dy = dy;
                 this.updatePosition();
-                this.element.addEventListener('click', () => this.increaseSpeed());
+                balls.push(this); // Push this ball object into the array
+                this.element.addEventListener('click', () => this.handleBallClick());
                 this.animate();
             }
 
@@ -52,17 +78,13 @@
                     this.dy *= -1;
                 }
 
-                // Check if the ball has reached the maximum speed
-                const currentSpeed = Math.sqrt(this.dx ** 2 + this.dy ** 2);
-                if (currentSpeed >= maxSpeed) {
-                    // Split the ball into two smaller balls
-                    createNewBall(this.x, this.y, -this.dx, -this.dy);
-                    createNewBall(this.x, this.y, this.dx, this.dy);
-                    this.element.remove(); // Remove the original ball
-                } else {
-                    this.updatePosition();
-                    requestAnimationFrame(() => this.animate());
-                }
+                this.updatePosition();
+                requestAnimationFrame(() => this.animate());
+            }
+
+            handleBallClick() {
+                this.increaseSpeed();
+                this.splitBall();
             }
 
             increaseSpeed() {
@@ -70,6 +92,17 @@
                 const newSpeed = Math.min(maxSpeed, Math.sqrt(this.dx ** 2 + this.dy ** 2) + speedIncrement);
                 this.dx = Math.cos(angle) * newSpeed;
                 this.dy = Math.sin(angle) * newSpeed;
+            }
+
+            splitBall() {
+                if (balls.length < 100) { // Limit the number of balls to prevent excessive load
+                    const angle1 = Math.random() * Math.PI * 2;
+                    const angle2 = Math.random() * Math.PI * 2;
+                    createNewBall(this.x, this.y, Math.cos(angle1) * 2, Math.sin(angle1) * 2);
+                    createNewBall(this.x, this.y, Math.cos(angle2) * 2, Math.sin(angle2) * 2);
+                    this.element.remove(); // Remove the original ball
+                    balls.splice(balls.indexOf(this), 1); // Remove this ball from the array
+                }
             }
         }
 
@@ -83,6 +116,11 @@
         // Initialize the first ball
         const initialBallElement = document.getElementById('ball');
         new Ball(initialBallElement, 0, 0, 2, 2);
+
+        // Add event listener to the button to increase speed of all balls
+        document.getElementById('speedButton').addEventListener('click', () => {
+            balls.forEach(ball => ball.increaseSpeed());
+        });
     </script>
 </body>
 </html>
