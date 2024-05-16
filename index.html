@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        .ball {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #3498db;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="ball" id="ball"></div>
+
+    <script>
+        const maxSpeed = 10; // Maximum speed before splitting
+        const speedIncrement = 1.5; // Speed increment on each click
+
+        class Ball {
+            constructor(element, x, y, dx, dy) {
+                this.element = element;
+                this.x = x;
+                this.y = y;
+                this.dx = dx;
+                this.dy = dy;
+                this.updatePosition();
+                this.element.addEventListener('click', () => this.increaseSpeed());
+                this.animate();
+            }
+
+            updatePosition() {
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            }
+
+            animate() {
+                this.x += this.dx;
+                this.y += this.dy;
+
+                // Bounce off the window edges
+                if (this.x + this.element.clientWidth > window.innerWidth || this.x < 0) {
+                    this.dx *= -1;
+                }
+                if (this.y + this.element.clientHeight > window.innerHeight || this.y < 0) {
+                    this.dy *= -1;
+                }
+
+                // Check if the ball has reached the maximum speed
+                const currentSpeed = Math.sqrt(this.dx ** 2 + this.dy ** 2);
+                if (currentSpeed >= maxSpeed) {
+                    // Split the ball into two smaller balls
+                    createNewBall(this.x, this.y, -this.dx, -this.dy);
+                    createNewBall(this.x, this.y, this.dx, this.dy);
+                    this.element.remove(); // Remove the original ball
+                } else {
+                    this.updatePosition();
+                    requestAnimationFrame(() => this.animate());
+                }
+            }
+
+            increaseSpeed() {
+                const angle = Math.atan2(this.dy, this.dx);
+                const newSpeed = Math.min(maxSpeed, Math.sqrt(this.dx ** 2 + this.dy ** 2) + speedIncrement);
+                this.dx = Math.cos(angle) * newSpeed;
+                this.dy = Math.sin(angle) * newSpeed;
+            }
+        }
+
+        function createNewBall(x, y, dx, dy) {
+            const newBallElement = document.createElement('div');
+            newBallElement.className = 'ball';
+            document.body.appendChild(newBallElement);
+            new Ball(newBallElement, x, y, dx, dy);
+        }
+
+        // Initialize the first ball
+        const initialBallElement = document.getElementById('ball');
+        new Ball(initialBallElement, 0, 0, 2, 2);
+    </script>
+</body>
+</html>
